@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useMedicationData } from "@/hooks/useMedicationData";
+import { getMedicationData } from "@/data/mockMedicationData";
 
 export const DosageSection = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -29,59 +30,8 @@ export const DosageSection = () => {
     setShowSuggestions(false);
   };
 
-  // Mock dosage data
-  const dosageData = selectedMed ? [
-    {
-      age: "< 3 mois",
-      poids: "< 5 kg",
-      voie: "Orale",
-      dosePrise: "10-15 mg/kg",
-      frequence: "3-4 fois/j",
-      doseMaxPrise: "15 mg/kg",
-      doseMax24h: "60 mg/kg",
-      notes: "Avis médical requis",
-    },
-    {
-      age: "3-12 mois",
-      poids: "5-10 kg",
-      voie: "Orale",
-      dosePrise: "60-120 mg",
-      frequence: "4 fois/j",
-      doseMaxPrise: "120 mg",
-      doseMax24h: "480 mg",
-      notes: "Intervalle minimum 4h",
-    },
-    {
-      age: "1-5 ans",
-      poids: "10-20 kg",
-      voie: "Orale",
-      dosePrise: "120-240 mg",
-      frequence: "4 fois/j",
-      doseMaxPrise: "240 mg",
-      doseMax24h: "960 mg",
-      notes: "",
-    },
-    {
-      age: "6-12 ans",
-      poids: "20-40 kg",
-      voie: "Orale",
-      dosePrise: "240-480 mg",
-      frequence: "4 fois/j",
-      doseMaxPrise: "480 mg",
-      doseMax24h: "2000 mg",
-      notes: "",
-    },
-    {
-      age: "> 12 ans",
-      poids: "> 40 kg",
-      voie: "Orale",
-      dosePrise: "500-1000 mg",
-      frequence: "4 fois/j",
-      doseMaxPrise: "1000 mg",
-      doseMax24h: "4000 mg",
-      notes: "Ne pas dépasser 3g/j chez l'adulte",
-    },
-  ] : [];
+  const medicationInfo = selectedMed ? getMedicationData(selectedMed) : null;
+  const dosageData = medicationInfo?.dosages || [];
 
   return (
     <div className="space-y-6">
@@ -128,12 +78,23 @@ export const DosageSection = () => {
         <Card className="p-6 shadow-md">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold">Posologies : {selectedMed}</h3>
+              <h3 className="text-xl font-semibold">
+                Posologies : {medicationInfo?.name || selectedMed}
+              </h3>
               <Badge variant="outline">Source : RCP ANSM</Badge>
             </div>
+            
+            {dosageData.length === 0 && (
+              <Card className="p-4 bg-muted/30">
+                <p className="text-sm text-muted-foreground">
+                  Les données de posologie pour ce médicament ne sont pas encore disponibles dans la base.
+                </p>
+              </Card>
+            )}
 
-            <div className="overflow-x-auto">
-              <Table>
+            {dosageData.length > 0 && (
+              <div className="overflow-x-auto">
+                <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Âge</TableHead>
@@ -162,6 +123,7 @@ export const DosageSection = () => {
                 </TableBody>
               </Table>
             </div>
+            )}
 
             <Card className="p-4 bg-warning/10 border-warning/30">
               <div className="flex items-start gap-3">

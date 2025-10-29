@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { getMedicationData } from "@/data/mockMedicationData";
 
 interface MedicationResultsProps {
   medication1: string;
@@ -11,28 +12,28 @@ interface MedicationResultsProps {
 }
 
 export const MedicationResults = ({ medication1, medication2, mode }: MedicationResultsProps) => {
-  // Mock data - Dans la vraie app, ces données viendraient des APIs ANSM/CRAT
+  const medicationInfo = getMedicationData(medication1);
+  
   const getMockData = () => {
+    if (!medicationInfo) {
+      return {
+        severity: "medium" as const,
+        title: `Informations non disponibles pour ${medication1}`,
+        summary: ["Les données pour ce médicament ne sont pas encore disponibles dans la base."],
+        details: [],
+        sources: [
+          { name: "RCP ANSM", url: "https://ansm.sante.fr" },
+        ],
+      };
+    }
+
     switch (mode) {
       case "contre-indications":
         return {
-          severity: "medium",
-          title: "Contre-indications de " + medication1,
-          summary: [
-            "Hypersensibilité à la substance active ou aux excipients",
-            "Insuffisance hépatocellulaire sévère",
-            "Risque de toxicité en cas d'alcoolisme chronique",
-          ],
-          details: [
-            {
-              title: "Contre-indications absolues",
-              content: "Ne pas utiliser en cas d'hypersensibilité connue au principe actif. Risque de réaction anaphylactique sévère.",
-            },
-            {
-              title: "Mises en garde",
-              content: "Prudence en cas d'insuffisance rénale ou hépatique. Surveillance biologique recommandée.",
-            },
-          ],
+          severity: medicationInfo.contraindications.severity,
+          title: `Contre-indications de ${medicationInfo.name}`,
+          summary: medicationInfo.contraindications.summary,
+          details: medicationInfo.contraindications.details,
           sources: [
             { name: "RCP ANSM", url: "https://ansm.sante.fr" },
             { name: "Notice", url: "https://ansm.sante.fr" },
@@ -40,19 +41,10 @@ export const MedicationResults = ({ medication1, medication2, mode }: Medication
         };
       case "grossesse":
         return {
-          severity: "safe",
-          title: "Utilisation pendant la grossesse",
-          summary: [
-            "Utilisable pendant toute la grossesse",
-            "Pas d'effet malformatif ou fœtotoxique démontré",
-            "Données cliniques rassurantes sur plusieurs milliers de grossesses",
-          ],
-          details: [
-            {
-              title: "Conclusion CRAT",
-              content: "Le paracétamol peut être utilisé quel que soit le terme de la grossesse. Privilégier la dose efficace la plus faible pendant la durée la plus courte possible.",
-            },
-          ],
+          severity: medicationInfo.pregnancy.severity,
+          title: `${medicationInfo.name} - Utilisation pendant la grossesse`,
+          summary: medicationInfo.pregnancy.summary,
+          details: medicationInfo.pregnancy.details,
           sources: [
             { name: "CRAT", url: "https://www.lecrat.fr" },
             { name: "RCP ANSM", url: "https://ansm.sante.fr" },
@@ -60,28 +52,19 @@ export const MedicationResults = ({ medication1, medication2, mode }: Medication
         };
       case "allaitement":
         return {
-          severity: "safe",
-          title: "Utilisation pendant l'allaitement",
-          summary: [
-            "Compatible avec l'allaitement",
-            "Passage dans le lait maternel en très faible quantité",
-            "Aucun effet indésirable rapporté chez les nourrissons allaités",
-          ],
-          details: [
-            {
-              title: "Données CRAT",
-              content: "Le paracétamol est compatible avec l'allaitement aux posologies usuelles. C'est l'antalgique de référence chez la femme qui allaite.",
-            },
-          ],
+          severity: medicationInfo.breastfeeding.severity,
+          title: `${medicationInfo.name} - Utilisation pendant l'allaitement`,
+          summary: medicationInfo.breastfeeding.summary,
+          details: medicationInfo.breastfeeding.details,
           sources: [
             { name: "CRAT", url: "https://www.lecrat.fr" },
           ],
         };
       case "interactions":
         return {
-          severity: medication2 ? "high" : "low",
+          severity: medication2 ? "high" as const : "low" as const,
           title: medication2 
-            ? `Interactions entre ${medication1} et ${medication2}`
+            ? `Interactions entre ${medicationInfo.name} et ${medication2}`
             : "Sélectionnez un deuxième médicament",
           summary: medication2 ? [
             "Association déconseillée",
