@@ -91,7 +91,7 @@ export const MedicationSearch = () => {
 
           <Tabs value={selectedMode} onValueChange={setSelectedMode} className="w-full">
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="contre-indications">CI</TabsTrigger>
+              <TabsTrigger value="contre-indications">Contre-indications</TabsTrigger>
               <TabsTrigger value="grossesse">Grossesse</TabsTrigger>
               <TabsTrigger value="allaitement">Allaitement</TabsTrigger>
               <TabsTrigger value="interactions">Interactions</TabsTrigger>

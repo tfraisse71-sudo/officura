@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { Pill, Calculator, Syringe, Plane } from "lucide-react";
+import { Calculator, Syringe, Plane } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { MedicationSearch } from "@/components/MedicationSearch";
 import { DosageSection } from "@/components/DosageSection";
 import { VaccinationSection } from "@/components/VaccinationSection";
 import { TravelSection } from "@/components/TravelSection";
+import logo from "@/assets/medisafe-logo.png";
 
 const Index = () => {
   return (
@@ -15,13 +15,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-gradient-primary flex items-center justify-center">
-                <Pill className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">MediSafe</h1>
-                <p className="text-xs text-muted-foreground">Informations médicales officielles</p>
-              </div>
+              <img src={logo} alt="MediSafe" className="h-12 w-auto" />
             </div>
             <div className="text-right">
               <p className="text-xs text-muted-foreground">Version 1.0</p>
@@ -36,8 +30,7 @@ const Index = () => {
         <Tabs defaultValue="medicament" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 h-auto gap-2">
             <TabsTrigger value="medicament" className="gap-2 py-3">
-              <Pill className="h-4 w-4" />
-              <span className="hidden sm:inline">Recherche</span> Médicament
+              Médicament
             </TabsTrigger>
             <TabsTrigger value="posologie" className="gap-2 py-3">
               <Calculator className="h-4 w-4" />

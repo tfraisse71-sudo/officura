@@ -1,13 +1,33 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Search, Info } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { useMedicationData } from "@/hooks/useMedicationData";
 
 export const DosageSection = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMed, setSelectedMed] = useState<string | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const medications = useMedicationData();
+
+  const suggestions = useMemo(() => {
+    if (searchTerm.length < 2) return [];
+    const term = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return medications
+      .filter(med => 
+        med.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(term)
+      )
+      .slice(0, 10);
+  }, [searchTerm, medications]);
+
+  const handleSelectMed = (med: string) => {
+    setSelectedMed(med);
+    setSearchTerm(med);
+    setShowSuggestions(false);
+  };
 
   // Mock dosage data
   const dosageData = selectedMed ? [
@@ -63,34 +83,43 @@ export const DosageSection = () => {
     },
   ] : [];
 
-  const handleSearch = () => {
-    if (searchTerm.length >= 2) {
-      setSelectedMed(searchTerm);
-    }
-  };
-
   return (
     <div className="space-y-6">
       <Card className="p-6 border-primary/20 shadow-md">
         <div className="space-y-4">
-          <div>
+          <div className="relative">
             <label htmlFor="med-dosage" className="block text-sm font-medium mb-2">
               Rechercher un médicament
             </label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="med-dosage"
-                  type="text"
-                  placeholder="Ex : paracétamol, amoxicilline..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="pl-10"
-                />
-              </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="med-dosage"
+                type="text"
+                placeholder="Ex : paracétamol, amoxicilline..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setSelectedMed(null);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                className="pl-10"
+              />
             </div>
+            {showSuggestions && suggestions.length > 0 && (
+              <Card className="absolute z-10 w-full mt-1 max-h-60 overflow-auto">
+                {suggestions.map((med, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSelectMed(med)}
+                    className="w-full text-left px-4 py-2 hover:bg-secondary transition-colors text-sm"
+                  >
+                    {med}
+                  </button>
+                ))}
+              </Card>
+            )}
           </div>
         </div>
       </Card>

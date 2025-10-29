@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 export const VaccinationSection = () => {
   const [age, setAge] = useState("");
   const [showResults, setShowResults] = useState(false);
+  const [completedVaccines, setCompletedVaccines] = useState<string[]>([]);
 
   const vaccines = [
     { id: "dtcp", label: "DT-Coq-Polio" },
@@ -26,16 +27,58 @@ export const VaccinationSection = () => {
     }
   };
 
-  // Mock data for demonstration
-  const enRetard = showResults ? [
-    { name: "DT-Coq-Polio - Rappel", dueAge: "6 ans", note: "Rappel obligatoire" },
-    { name: "Méningocoque C", dueAge: "5 ans", note: "Dose unique" },
-  ] : [];
+  const handleVaccineToggle = (vaccineId: string) => {
+    setCompletedVaccines(prev => 
+      prev.includes(vaccineId) 
+        ? prev.filter(id => id !== vaccineId)
+        : [...prev, vaccineId]
+    );
+  };
 
-  const aVenir = showResults ? [
-    { name: "DT-Coq-Polio - Rappel", nextAge: "11-13 ans", note: "Rappel adolescent" },
-    { name: "HPV", nextAge: "11-14 ans", note: "2 doses à 6 mois d'intervalle" },
-  ] : [];
+  // Calculate vaccines based on age and completed vaccines
+  const ageNum = parseInt(age);
+  
+  const enRetard = showResults && ageNum ? (() => {
+    const overdue = [];
+    
+    // DT-Coq-Polio rappel at 6 years
+    if (ageNum > 6 && !completedVaccines.includes("dtcp")) {
+      overdue.push({ name: "DT-Coq-Polio - Rappel", dueAge: "6 ans", note: "Rappel obligatoire" });
+    }
+    
+    // Méningocoque C at 5 months to 12 months
+    if (ageNum >= 1 && !completedVaccines.includes("meningocoque")) {
+      overdue.push({ name: "Méningocoque C", dueAge: "5-12 mois", note: "Dose unique" });
+    }
+    
+    // ROR at 12 months
+    if (ageNum >= 1 && !completedVaccines.includes("ror")) {
+      overdue.push({ name: "ROR (Rougeole-Oreillons-Rubéole)", dueAge: "12 mois", note: "Première dose" });
+    }
+    
+    return overdue;
+  })() : [];
+
+  const aVenir = showResults && ageNum ? (() => {
+    const upcoming = [];
+    
+    // DT-Coq-Polio rappel at 11-13 years
+    if (ageNum < 11) {
+      upcoming.push({ name: "DT-Coq-Polio - Rappel", nextAge: "11-13 ans", note: "Rappel adolescent" });
+    }
+    
+    // HPV at 11-14 years
+    if (ageNum < 11 && !completedVaccines.includes("hpv")) {
+      upcoming.push({ name: "HPV (Papillomavirus)", nextAge: "11-14 ans", note: "2 doses à 6 mois d'intervalle" });
+    }
+    
+    // DT-Coq-Polio rappel at 25 years
+    if (ageNum >= 13 && ageNum < 25) {
+      upcoming.push({ name: "DT-Coq-Polio - Rappel", nextAge: "25 ans", note: "Rappel adulte" });
+    }
+    
+    return upcoming;
+  })() : [];
 
   return (
     <div className="space-y-6">
@@ -67,7 +110,11 @@ export const VaccinationSection = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {vaccines.map((vaccine) => (
                 <div key={vaccine.id} className="flex items-center space-x-2">
-                  <Checkbox id={vaccine.id} />
+                  <Checkbox 
+                    id={vaccine.id}
+                    checked={completedVaccines.includes(vaccine.id)}
+                    onCheckedChange={() => handleVaccineToggle(vaccine.id)}
+                  />
                   <label
                     htmlFor={vaccine.id}
                     className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
