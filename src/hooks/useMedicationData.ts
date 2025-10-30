@@ -5,7 +5,7 @@ export const useMedicationData = () => {
 
   useEffect(() => {
     // Load medication data from CSV
-    fetch('/src/data/medicaments.csv')
+    fetch('/medicaments.csv')
       .then(response => response.text())
       .then(text => {
         const lines = text.split('\n').slice(1); // Skip header
