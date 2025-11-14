@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.medication-dosage]
 verify_jwt = false
+
+[functions.search-medications]
+verify_jwt = false
