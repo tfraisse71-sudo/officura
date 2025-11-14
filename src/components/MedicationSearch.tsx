@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, AlertCircle, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMedicationData } from "@/hooks/useMedicationData";
 import { MedicationResults } from "./MedicationResults";
+import { supabase } from "@/integrations/supabase/client";
 
 export const MedicationSearch = () => {
   const [searchTerm1, setSearchTerm1] = useState("");
@@ -15,27 +16,114 @@ export const MedicationSearch = () => {
   const [showSuggestions2, setShowSuggestions2] = useState(false);
   const [selectedMed1, setSelectedMed1] = useState<string | null>(null);
   const [selectedMed2, setSelectedMed2] = useState<string | null>(null);
+  const [aiSuggestions1, setAiSuggestions1] = useState<string[]>([]);
+  const [aiSuggestions2, setAiSuggestions2] = useState<string[]>([]);
+  const [isLoadingAi1, setIsLoadingAi1] = useState(false);
+  const [isLoadingAi2, setIsLoadingAi2] = useState(false);
 
   const medications = useMedicationData();
 
   const suggestions1 = useMemo(() => {
     if (searchTerm1.length < 2) return [];
     const term = searchTerm1.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    return medications
+    const localResults = medications
       .filter(med => 
         med.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").startsWith(term)
       )
       .slice(0, 10);
-  }, [searchTerm1, medications]);
+    
+    // Combine local results with AI suggestions
+    const combined = [...localResults, ...aiSuggestions1.filter(ai => !localResults.includes(ai))];
+    return combined.slice(0, 10);
+  }, [searchTerm1, medications, aiSuggestions1]);
 
   const suggestions2 = useMemo(() => {
     if (searchTerm2.length < 2) return [];
     const term = searchTerm2.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    return medications
+    const localResults = medications
       .filter(med => 
         med.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").startsWith(term)
       )
       .slice(0, 10);
+    
+    // Combine local results with AI suggestions
+    const combined = [...localResults, ...aiSuggestions2.filter(ai => !localResults.includes(ai))];
+    return combined.slice(0, 10);
+  }, [searchTerm2, medications, aiSuggestions2]);
+
+  // Fetch AI suggestions when local results are insufficient
+  useEffect(() => {
+    const fetchAiSuggestions = async () => {
+      if (searchTerm1.length < 2) {
+        setAiSuggestions1([]);
+        return;
+      }
+      
+      const term = searchTerm1.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const localResults = medications.filter(med => 
+        med.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").startsWith(term)
+      );
+      
+      // Only call AI if we have less than 5 local results
+      if (localResults.length < 5) {
+        setIsLoadingAi1(true);
+        try {
+          const { data, error } = await supabase.functions.invoke('search-medications', {
+            body: { searchTerm: searchTerm1.slice(0, 2) }
+          });
+          
+          if (!error && data?.medications) {
+            setAiSuggestions1(data.medications);
+          }
+        } catch (error) {
+          console.error('Error fetching AI suggestions:', error);
+        } finally {
+          setIsLoadingAi1(false);
+        }
+      } else {
+        setAiSuggestions1([]);
+      }
+    };
+
+    const timeoutId = setTimeout(fetchAiSuggestions, 500);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm1, medications]);
+
+  useEffect(() => {
+    const fetchAiSuggestions = async () => {
+      if (searchTerm2.length < 2) {
+        setAiSuggestions2([]);
+        return;
+      }
+      
+      const term = searchTerm2.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const localResults = medications.filter(med => 
+        med.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").startsWith(term)
+      );
+      
+      // Only call AI if we have less than 5 local results
+      if (localResults.length < 5) {
+        setIsLoadingAi2(true);
+        try {
+          const { data, error } = await supabase.functions.invoke('search-medications', {
+            body: { searchTerm: searchTerm2.slice(0, 2) }
+          });
+          
+          if (!error && data?.medications) {
+            setAiSuggestions2(data.medications);
+          }
+        } catch (error) {
+          console.error('Error fetching AI suggestions:', error);
+        } finally {
+          setIsLoadingAi2(false);
+        }
+      } else {
+        setAiSuggestions2([]);
+      }
+    };
+
+    const timeoutId = setTimeout(fetchAiSuggestions, 500);
+    return () => clearTimeout(timeoutId);
   }, [searchTerm2, medications]);
 
   const handleSelectMed1 = (med: string) => {
