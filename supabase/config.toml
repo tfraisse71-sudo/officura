@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.search-countries]
 verify_jwt = false
+
+[functions.analyze-vaccines]
+verify_jwt = false
