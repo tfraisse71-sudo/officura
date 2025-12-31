@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.search-medications]
 verify_jwt = false
+
+[functions.travel-recommendations]
+verify_jwt = false
