@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMedicationData } from "@/hooks/useMedicationData";
 import { MedicationResults } from "./MedicationResults";
+import { EquivalenceResults } from "./EquivalenceResults";
 import { supabase } from "@/integrations/supabase/client";
 
 export const MedicationSearch = () => {
@@ -178,12 +179,13 @@ export const MedicationSearch = () => {
           </div>
 
           <Tabs value={selectedMode} onValueChange={setSelectedMode} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1 sm:gap-1.5 h-auto p-0.5 sm:p-1">
+            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-1 sm:gap-1.5 h-auto p-0.5 sm:p-1">
               <TabsTrigger value="indications-conseils" className="text-[10px] sm:text-xs py-1.5 sm:py-2 px-1 sm:px-3">Indications</TabsTrigger>
               <TabsTrigger value="contre-indications" className="text-[10px] sm:text-xs py-1.5 sm:py-2 px-1 sm:px-3">Contre-ind.</TabsTrigger>
               <TabsTrigger value="grossesse" className="text-[10px] sm:text-xs py-1.5 sm:py-2 px-1 sm:px-3">Grossesse</TabsTrigger>
               <TabsTrigger value="allaitement" className="text-[10px] sm:text-xs py-1.5 sm:py-2 px-1 sm:px-3">Allaitement</TabsTrigger>
               <TabsTrigger value="interactions" className="text-[10px] sm:text-xs py-1.5 sm:py-2 px-1 sm:px-3">Interactions</TabsTrigger>
+              <TabsTrigger value="equivalence" className="text-[10px] sm:text-xs py-1.5 sm:py-2 px-1 sm:px-3">Équivalence</TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -226,7 +228,11 @@ export const MedicationSearch = () => {
         </div>
       </Card>
 
-      {selectedMed1 && (
+      {selectedMed1 && selectedMode === "equivalence" && (
+        <EquivalenceResults medication={selectedMed1} />
+      )}
+
+      {selectedMed1 && selectedMode !== "equivalence" && (
         <MedicationResults
           medication1={selectedMed1}
           medication2={selectedMode === "interactions" ? selectedMed2 : null}
