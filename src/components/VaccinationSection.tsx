@@ -43,16 +43,31 @@ export const VaccinationSection = () => {
   const [completedVaccines, setCompletedVaccines] = useState<string[]>([]);
   const [analysis, setAnalysis] = useState<VaccineAnalysis | null>(null);
 
+  // Liste complète des vaccins selon le calendrier vaccinal français 2024-2025
   const vaccines = [
-    { id: "dtcp", label: "DT-Coq-Polio" },
-    { id: "haemophilus", label: "Haemophilus influenzae b" },
-    { id: "hepatiteB", label: "Hépatite B" },
-    { id: "pneumocoque", label: "Pneumocoque" },
-    { id: "meningocoque", label: "Méningocoque C" },
-    { id: "ror", label: "ROR (Rougeole-Oreillons-Rubéole)" },
-    { id: "hpv", label: "HPV (Papillomavirus)" },
-    { id: "grippe", label: "Grippe" },
-    { id: "zona", label: "Zona" },
+    // Vaccins obligatoires du nourrisson
+    { id: "dtcp", label: "DTP (Diphtérie-Tétanos-Polio)", category: "Obligatoire" },
+    { id: "coqueluche", label: "Coqueluche", category: "Obligatoire" },
+    { id: "haemophilus", label: "Haemophilus influenzae b (Hib)", category: "Obligatoire" },
+    { id: "hepatiteB", label: "Hépatite B", category: "Obligatoire" },
+    { id: "pneumocoque", label: "Pneumocoque (Prevenar)", category: "Obligatoire" },
+    { id: "meningocoqueC", label: "Méningocoque C", category: "Obligatoire" },
+    { id: "ror", label: "ROR (Rougeole-Oreillons-Rubéole)", category: "Obligatoire" },
+    
+    // Vaccins recommandés
+    { id: "meningocoqueB", label: "Méningocoque B (Bexsero)", category: "Recommandé" },
+    { id: "meningocoqueACWY", label: "Méningocoque ACWY", category: "Recommandé" },
+    { id: "hpv", label: "HPV (Papillomavirus)", category: "Recommandé" },
+    { id: "varicelle", label: "Varicelle", category: "Recommandé" },
+    { id: "bcg", label: "BCG (Tuberculose)", category: "Recommandé" },
+    { id: "hepatiteA", label: "Hépatite A", category: "Recommandé" },
+    
+    // Vaccins pour adultes/seniors
+    { id: "grippe", label: "Grippe (annuel)", category: "Adulte/Senior" },
+    { id: "zona", label: "Zona (Shingrix)", category: "Adulte/Senior" },
+    { id: "pneumocoqueAdulte", label: "Pneumocoque adulte (Prevenar 20)", category: "Adulte/Senior" },
+    { id: "covid", label: "COVID-19", category: "Adulte/Senior" },
+    { id: "vrs", label: "VRS (Virus Respiratoire Syncytial)", category: "Adulte/Senior" },
   ];
 
   const handleCalculate = async () => {
@@ -144,22 +159,71 @@ export const VaccinationSection = () => {
 
           <div>
             <p className="text-xs sm:text-sm font-medium mb-3">Vaccins déjà réalisés (optionnel)</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-              {vaccines.map((vaccine) => (
-                <div key={vaccine.id} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={vaccine.id}
-                    checked={completedVaccines.includes(vaccine.id)}
-                    onCheckedChange={() => handleVaccineToggle(vaccine.id)}
-                  />
-                  <label
-                    htmlFor={vaccine.id}
-                    className="text-xs sm:text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                  >
-                    {vaccine.label}
-                  </label>
-                </div>
-              ))}
+            
+            {/* Vaccins obligatoires */}
+            <div className="mb-4">
+              <p className="text-xs text-muted-foreground mb-2 font-medium">Vaccins obligatoires (nourrisson)</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                {vaccines.filter(v => v.category === "Obligatoire").map((vaccine) => (
+                  <div key={vaccine.id} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={vaccine.id}
+                      checked={completedVaccines.includes(vaccine.id)}
+                      onCheckedChange={() => handleVaccineToggle(vaccine.id)}
+                    />
+                    <label
+                      htmlFor={vaccine.id}
+                      className="text-xs sm:text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      {vaccine.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Vaccins recommandés */}
+            <div className="mb-4">
+              <p className="text-xs text-muted-foreground mb-2 font-medium">Vaccins recommandés</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                {vaccines.filter(v => v.category === "Recommandé").map((vaccine) => (
+                  <div key={vaccine.id} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={vaccine.id}
+                      checked={completedVaccines.includes(vaccine.id)}
+                      onCheckedChange={() => handleVaccineToggle(vaccine.id)}
+                    />
+                    <label
+                      htmlFor={vaccine.id}
+                      className="text-xs sm:text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      {vaccine.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Vaccins adultes/seniors */}
+            <div>
+              <p className="text-xs text-muted-foreground mb-2 font-medium">Vaccins adultes / seniors</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                {vaccines.filter(v => v.category === "Adulte/Senior").map((vaccine) => (
+                  <div key={vaccine.id} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={vaccine.id}
+                      checked={completedVaccines.includes(vaccine.id)}
+                      onCheckedChange={() => handleVaccineToggle(vaccine.id)}
+                    />
+                    <label
+                      htmlFor={vaccine.id}
+                      className="text-xs sm:text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      {vaccine.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
