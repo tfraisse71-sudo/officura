@@ -50,11 +50,10 @@ RÈGLE IMPORTANTE SUR LA NOMENCLATURE :
 
 MISES À JOUR CALENDRIER VACCINAL 2024-2025 :
 
-1. HPV (PAPILLOMAVIRUS) - MISE À JOUR IMPORTANTE :
+1. HPV (PAPILLOMAVIRUS) - MISE À JOUR 2024 :
    - Vaccination systématique : 11-14 ans (2 doses espacées de 6 mois)
-   - RATTRAPAGE : possible de 15 à 19 ans révolus (3 doses) pour TOUS (filles ET garçons)
-   - RATTRAPAGE ÉTENDU jusqu'à 26 ans pour les HSH (hommes ayant des relations sexuelles avec des hommes)
-   - Recommandation : toute personne non vaccinée entre 11 et 19 ans peut se faire vacciner
+   - RATTRAPAGE : possible de 15 à 26 ans révolus (3 doses) pour TOUS (filles ET garçons)
+   - Recommandation : toute personne non vaccinée entre 11 et 26 ans peut se faire vacciner
 
 2. PNEUMOCOQUE - PREVENAR 20 (PCV20) :
    - Remplace progressivement Prevenar 13
@@ -79,7 +78,7 @@ MISES À JOUR CALENDRIER VACCINAL 2024-2025 :
    - Rappels recommandés pour 65+ ans et personnes à risque (automne)
 
 RÈGLES DE RATTRAPAGE ACTUALISÉES :
-- HPV : jusqu'à 19 ans révolus pour tous, jusqu'à 26 ans pour HSH
+- HPV : jusqu'à 26 ans révolus pour tous (hommes et femmes)
 - Méningocoque C : jusqu'à 24 ans
 - Méningocoque B : jusqu'à 24 ans
 - ROR : rattrapage possible à tout âge
