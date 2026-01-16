@@ -38,6 +38,7 @@ interface VaccineAnalysis {
 export const VaccinationSection = () => {
   const [age, setAge] = useState("");
   const [sex, setSex] = useState("");
+  const [isPregnant, setIsPregnant] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [completedVaccines, setCompletedVaccines] = useState<string[]>([]);
@@ -87,7 +88,8 @@ export const VaccinationSection = () => {
         body: { 
           age: parseInt(age), 
           completedVaccines: completedLabels,
-          sex 
+          sex,
+          isPregnant 
         }
       });
 
@@ -123,7 +125,7 @@ export const VaccinationSection = () => {
     <div className="space-y-4 sm:space-y-6">
       <Card className="p-4 sm:p-6 border-primary/20 shadow-md">
         <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label htmlFor="age-input" className="block text-xs sm:text-sm font-medium mb-2">
                 Âge (années)
@@ -152,6 +154,22 @@ export const VaccinationSection = () => {
                   <SelectItem value="femme">Femme</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex items-end pb-1">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="pregnant-checkbox"
+                  checked={isPregnant}
+                  onCheckedChange={(checked) => setIsPregnant(checked === true)}
+                  disabled={sex === "homme"}
+                />
+                <label
+                  htmlFor="pregnant-checkbox"
+                  className={`text-xs sm:text-sm leading-none cursor-pointer ${sex === "homme" ? "text-muted-foreground" : ""}`}
+                >
+                  Enceinte
+                </label>
+              </div>
             </div>
           </div>
 
