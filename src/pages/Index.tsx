@@ -112,12 +112,15 @@ const Index = () => {
           <Card className="p-3 sm:p-4 bg-secondary/30 border-border/50 mb-3 sm:mb-4 backdrop-blur-sm">
             <p className="text-xs sm:text-sm text-center leading-relaxed text-muted-foreground">
               <strong className="text-foreground">Avertissement :</strong> MediSafe ne remplace pas l'avis d'un professionnel de santé. 
-              Les informations présentées sont issues de sources officielles françaises (ANSM, CRAT, HAS, Santé publique France) 
-              et sont fournies à titre indicatif.
+              Les informations présentées sont fournies à titre indicatif dans le cadre d'une aide à la pratique officinale.
             </p>
           </Card>
-          <div className="text-center text-xs sm:text-sm text-muted-foreground space-y-1">
-            <p className="leading-relaxed">Sources : ANSM • CRAT • HAS • Santé publique France • OMS • Institut Pasteur</p>
+          <div className="text-center text-xs sm:text-sm text-muted-foreground space-y-2">
+            <p className="leading-relaxed">
+              <a href="/a-propos" className="text-primary hover:underline font-medium">
+                Cadre scientifique et réglementaire
+              </a>
+            </p>
             <p className="leading-relaxed">© 2025 MediSafe • Application conforme RGPD • Aucune donnée personnelle collectée</p>
           </div>
         </div>
