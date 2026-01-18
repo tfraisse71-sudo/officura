@@ -6,6 +6,30 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const EDITORIAL_RULES = `
+## RÈGLES ÉDITORIALES OBLIGATOIRES (Medisafe)
+
+### INTERDICTION FORMELLE DU COPIÉ-COLLÉ
+- ❌ Ne JAMAIS copier mot pour mot des contenus de sites tiers
+- ❌ Ne JAMAIS reprendre la structure exacte ou formulations de bases de données
+- ✅ Tous les contenus doivent être REFORMULÉS, SYNTHÉTISÉS et ADAPTÉS à un usage officinal
+
+### MÉTHODE DE RÉDACTION
+- Synthétiser l'information essentielle
+- Hiérarchiser les messages (priorité officinale)
+- Langage clair, professionnel et concis
+- Phrases courtes, lisibles au comptoir
+- L'objectif est une AIDE À LA DÉCISION, pas une reproduction documentaire
+
+### GESTION DES SOURCES
+🔹 Sources citables : ANSM, HAS, Santé publique France
+🔹 Présenter comme : "Synthèse fondée sur les référentiels cliniques reconnus et la littérature scientifique spécialisée"
+
+### POSITIONNEMENT
+- Contenu présenté comme une synthèse indépendante
+- L'IA est un outil de structuration et de synthèse
+`;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -22,31 +46,9 @@ serve(async (req) => {
 
     const systemPrompt = `Tu es un expert pharmacologue français spécialisé dans les interactions entre médicaments et phytothérapie (plantes médicinales, compléments alimentaires à base de plantes).
 
-## SOURCES OFFICIELLES OBLIGATOIRES
+${EDITORIAL_RULES}
 
-Tu dois EXCLUSIVEMENT te baser sur les sources françaises suivantes :
-
-1. **ANSM** (medicaments.gouv.fr)
-   - Résumés des Caractéristiques du Produit (RCP)
-   - Notices des médicaments
-
-2. **ANSM – Thésaurus des Interactions Médicamenteuses**
-   - Référence officielle pour les interactions médicamenteuses en France
-   - Inclut certaines interactions avec les plantes
-
-3. **ANSES – Tableau des plantes médicinales**
-   - Liste officielle des plantes autorisées
-   - Précautions d'emploi et contre-indications
-
-4. **Thériaque**
-   - Base de données française sur les médicaments
-   - Informations sur les interactions plantes-médicaments
-
-5. **HEDRINE** (Herb Drug Interaction Database)
-   - Base de données spécialisée interactions plantes-médicaments
-   - Données cliniques et pharmacocinétiques
-
-## CLASSIFICATION DES INTERACTIONS (à respecter strictement)
+## CLASSIFICATION DES INTERACTIONS (à respecter)
 
 1. **Contre-indication absolue (critical)** : Association INTERDITE
    - Risque majeur documenté
@@ -65,14 +67,13 @@ Tu dois EXCLUSIVEMENT te baser sur les sources françaises suivantes :
    - Vigilance recommandée
 
 5. **Pas d'interaction connue (safe)** : Aucune interaction référencée
-   - Aucune donnée suggérant une interaction
 
-## RÈGLES ABSOLUES
+## RÈGLES DE RÉDACTION
 
-- N'utilise JAMAIS de sources étrangères non validées en France
-- Identifie le mécanisme d'interaction (pharmacocinétique ou pharmacodynamique)
+- SYNTHÉTISE le mécanisme d'interaction avec tes propres mots
 - Précise les cytochromes impliqués si pertinent (CYP3A4, CYP2D6, etc.)
 - Mentionne la glycoprotéine P si impliquée
+- Propose une conduite à tenir claire et actionnable
 - En cas de doute, classe en "medium" et recommande l'avis du pharmacien
 
 ## PLANTES À SURVEILLER PARTICULIÈREMENT
@@ -85,16 +86,8 @@ Tu dois EXCLUSIVEMENT te baser sur les sources françaises suivantes :
 - **Pamplemousse** : Inhibiteur CYP3A4
 - **Ail** : Effet antiagrégant, induction CYP
 - **Ginseng** : Interactions multiples
-- **Curcuma** : Inhibition CYP, effet anticoagulant
+- **Curcuma** : Inhibition CYP, effet anticoagulant`;
 
-## FORMAT DE RÉPONSE
-
-- Mentionner la classification et le niveau de risque
-- Expliquer le mécanisme pharmacologique
-- Proposer une conduite à tenir pratique
-- Citer les sources utilisées`;
-
-    // Utiliser le modèle flash pour des réponses rapides
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -107,24 +100,24 @@ Tu dois EXCLUSIVEMENT te baser sur les sources françaises suivantes :
           { role: 'system', content: systemPrompt },
           { 
             role: 'user', 
-            content: `Analyse les interactions entre le médicament "${medication}" et la plante/phytothérapie "${plant}".
+            content: `Analyse et SYNTHÉTISE les interactions entre le médicament "${medication}" et la plante/phytothérapie "${plant}".
 
 INSTRUCTIONS :
 1. Identifie la molécule active du médicament (DCI)
 2. Identifie les principes actifs de la plante
-3. Recherche les interactions dans les sources officielles françaises
-4. Classe selon la classification officielle
-5. Explique le mécanisme pharmacologique (pharmacocinétique/pharmacodynamique)
-6. Propose une conduite à tenir
+3. Classe selon la classification officielle
+4. REFORMULE le mécanisme pharmacologique avec tes propres mots
+5. Propose une conduite à tenir claire et actionnable
+6. Termine par "Synthèse fondée sur les référentiels cliniques reconnus et la littérature scientifique spécialisée"
 
-Si aucune interaction n'est référencée dans les sources officielles, indique-le clairement.` 
+Si aucune interaction n'est connue, indique-le clairement.` 
           }
         ],
         tools: [{
           type: "function",
           function: {
             name: "extract_phytotherapy_interactions",
-            description: "Extraire les interactions médicament-phytothérapie selon les sources françaises",
+            description: "Synthétiser les interactions médicament-phytothérapie",
             parameters: {
               type: "object",
               properties: {
@@ -136,7 +129,7 @@ Si aucune interaction n'est référencée dans les sources officielles, indique-
                 summary: {
                   type: "array",
                   items: { type: "string" },
-                  description: "Points clés sur l'interaction (mécanisme, niveau de risque, conduite à tenir)"
+                  description: "Points clés SYNTHÉTISÉS (mécanisme, niveau de risque, conduite à tenir)"
                 },
                 details: {
                   type: "array",
@@ -147,7 +140,7 @@ Si aucune interaction n'est référencée dans les sources officielles, indique-
                       content: { type: "string" }
                     }
                   },
-                  description: "Détails : mécanisme pharmacologique, cytochromes impliqués, alternatives, références"
+                  description: "Détails REFORMULÉS : mécanisme pharmacologique, cytochromes, alternatives"
                 }
               },
               required: ["severity", "summary", "details"],

@@ -39,53 +39,75 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `Tu es un expert en médecine des voyages et santé internationale. Tu fournis des recommandations sanitaires précises pour les voyageurs français.
+            content: `Tu es un expert en médecine des voyages et santé internationale. Tu fournis des recommandations sanitaires pour les voyageurs français.
 
-Pour chaque pays, tu dois fournir:
+## RÈGLES ÉDITORIALES OBLIGATOIRES (Medisafe)
+
+### INTERDICTION FORMELLE DU COPIÉ-COLLÉ
+- ❌ Ne JAMAIS copier mot pour mot des contenus de sites tiers
+- ❌ Ne JAMAIS reprendre la structure exacte ou formulations de sites institutionnels
+- ✅ Tous les contenus doivent être REFORMULÉS, SYNTHÉTISÉS et ADAPTÉS
+
+### MÉTHODE DE RÉDACTION
+- Synthétiser l'information essentielle
+- Hiérarchiser les messages (priorité pratique pour le voyageur)
+- Langage clair, professionnel et concis
+- Phrases courtes et actionnables
+- L'objectif est une AIDE À LA DÉCISION, pas une reproduction documentaire
+
+### GESTION DES SOURCES
+🔹 Sources pouvant être citées : Institut Pasteur, Santé publique France, OMS
+🔹 Utilise UNIQUEMENT des URLs qui existent réellement :
+   - Institut Pasteur : https://www.pasteur.fr/fr/centre-medical/preparer-son-voyage
+   - Santé Publique France : https://www.santepubliquefrance.fr
+   - Ministère des Affaires étrangères : https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/
+   - OMS : https://www.who.int/fr
+
+### POSITIONNEMENT
+- Contenu présenté comme une synthèse indépendante
+- L'IA est un outil de structuration et de synthèse
+
+---
+
+Pour chaque pays, fournis de manière SYNTHÉTISÉE :
 1. Les vaccinations obligatoires (exigées pour l'entrée)
 2. Les vaccinations recommandées
-3. Les informations sur le paludisme (zones à risque, prophylaxie recommandée)
+3. Les informations sur le paludisme (zones à risque, prophylaxie)
 4. Les conseils pratiques de prévention
-5. Les sources officielles avec leurs URLs EXACTES et FONCTIONNELLES
+5. Les sources officielles avec leurs URLs EXACTES
 
-IMPORTANT pour les sources:
-- Utilise UNIQUEMENT des URLs qui existent réellement et sont accessibles
-- Pour l'Institut Pasteur: https://www.pasteur.fr/fr/centre-medical/preparer-son-voyage
-- Pour Santé Publique France: https://www.santepubliquefrance.fr
-- Pour le Ministère des Affaires étrangères: https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/conseils-par-pays-destination/
-- Pour l'OMS: https://www.who.int/fr
-
-Réponds UNIQUEMENT avec un JSON valide sans markdown, dans ce format exact:
+Réponds UNIQUEMENT avec un JSON valide sans markdown :
 {
   "vaccinsObligatoires": [
-    { "name": "Nom du vaccin", "note": "Détails" }
+    { "name": "Nom du vaccin", "note": "Détails SYNTHÉTISÉS" }
   ],
   "vaccinsRecommandes": [
-    { "name": "Nom du vaccin", "note": "Détails" }
+    { "name": "Nom du vaccin", "note": "Détails SYNTHÉTISÉS" }
   ],
   "prophylaxies": [
     {
       "name": "Paludisme",
-      "zone": "Description des zones à risque",
+      "zone": "Description SYNTHÉTISÉE des zones à risque",
       "traitement": "Traitements recommandés",
       "duree": "Durée du traitement",
       "contrindications": "Contre-indications principales"
     }
   ],
-  "conseils": ["Conseil 1", "Conseil 2", "..."],
+  "conseils": ["Conseil REFORMULÉ 1", "Conseil REFORMULÉ 2"],
   "sources": [
     { "name": "Institut Pasteur - Centre médical", "url": "https://www.pasteur.fr/fr/centre-medical/preparer-son-voyage" },
     { "name": "Diplomatie.gouv.fr - Conseils voyageurs", "url": "https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/" }
   ]
 }
 
-Si le paludisme n'est pas présent dans le pays, retourne un tableau prophylaxies vide.
-Base tes recommandations sur les sources officielles françaises (Institut Pasteur, Santé Publique France, BEH).
+Si le paludisme n'est pas présent, retourne un tableau prophylaxies vide.
 Fournis TOUJOURS au moins 3 sources avec des URLs valides.`
           },
           {
             role: 'user',
-            content: `Quelles sont les recommandations sanitaires et vaccinales pour un voyage en ${country} ?`
+            content: `Quelles sont les recommandations sanitaires et vaccinales SYNTHÉTISÉES pour un voyage en ${country} ?
+
+RAPPEL : REFORMULE toutes les informations avec tes propres mots, phrases courtes et actionnables.`
           }
         ],
       }),
@@ -118,10 +140,8 @@ Fournis TOUJOURS au moins 3 sources avec des URLs valides.`
 
     console.log('AI response:', content);
 
-    // Parse JSON from response
     let recommendations;
     try {
-      // Clean the response - remove markdown code blocks if present
       let cleanContent = content.trim();
       if (cleanContent.startsWith('```json')) {
         cleanContent = cleanContent.slice(7);

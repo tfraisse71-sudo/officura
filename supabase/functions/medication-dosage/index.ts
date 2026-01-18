@@ -6,6 +6,29 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const EDITORIAL_RULES = `
+## RÈGLES ÉDITORIALES OBLIGATOIRES (Medisafe)
+
+### INTERDICTION FORMELLE DU COPIÉ-COLLÉ
+- ❌ Ne JAMAIS copier mot pour mot des contenus de sites tiers
+- ❌ Ne JAMAIS reprendre la structure exacte ou formulations de sites institutionnels
+- ✅ Tous les contenus doivent être REFORMULÉS et ADAPTÉS à un usage officinal
+
+### MÉTHODE DE RÉDACTION
+- Synthétiser l'information essentielle
+- Langage clair, professionnel et concis
+- Phrases courtes, lisibles au comptoir
+- L'objectif est une AIDE À LA DÉCISION
+
+### GESTION DES SOURCES
+🔹 Sources citables : ANSM, HAS
+🔹 Présenter comme : "Synthèse fondée sur les référentiels cliniques reconnus"
+
+### POSITIONNEMENT
+- Contenu présenté comme une synthèse indépendante
+- L'IA est un outil de structuration et de synthèse
+`;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -22,36 +45,26 @@ serve(async (req) => {
 
     const systemPrompt = `Tu es un expert médical français spécialisé dans les posologies médicamenteuses.
 
-## RÈGLES DE VÉRIFICATION OBLIGATOIRES
+${EDITORIAL_RULES}
 
-### SOURCES OFFICIELLES EXCLUSIVES
-1. **RCP officiel** (Section 4.2 : Posologie et mode d'administration)
-   - Source : base-donnees-publique.medicaments.gouv.fr
-   - Seule référence valide pour les posologies
-
-2. **ANSM** pour les recommandations complémentaires
-
-### RÈGLES ABSOLUES
-- JAMAIS de sources étrangères (FDA, posologies américaines, britanniques, etc.)
-- Les posologies doivent correspondre EXACTEMENT aux AMM françaises
+### RÈGLES DE PRÉCISION
+- Les posologies doivent être exactes et correspondre aux données officielles françaises
 - Ne JAMAIS inventer ou approximer une posologie
-- En cas de doute, indiquer "Consulter le RCP pour confirmation"
+- En cas de doute, indiquer "À confirmer avec le professionnel de santé"
 
-### FORMAT DES POSOLOGIES
-Pour chaque tranche d'âge/poids, fournir :
+### FORMAT DES POSOLOGIES (synthétisé)
+Pour chaque tranche d'âge/poids, fournir de manière concise :
 - Voie d'administration
-- Dose par prise (en mg ou mg/kg)
+- Dose par prise
 - Fréquence d'administration
-- Dose maximale par prise
-- Dose maximale par 24h
-- Notes importantes (espacement minimum, précautions)
+- Doses maximales (par prise et par 24h)
+- Notes pratiques importantes
 
 ### PRÉCISIONS IMPORTANTES
 - Distinguer adultes et enfants clairement
-- Mentionner les adaptations pour insuffisance rénale/hépatique si applicable
-- Signaler les contre-indications d'âge (ex: aspirine < 16 ans)`;
+- Mentionner les adaptations si applicable (insuffisance rénale/hépatique)
+- Signaler les contre-indications d'âge`;
 
-    // Utiliser le modèle flash pour des réponses rapides
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -62,19 +75,19 @@ Pour chaque tranche d'âge/poids, fournir :
         model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Fournis les posologies officielles VÉRIFIÉES du RCP pour le médicament français: ${medicationName}
+          { role: 'user', content: `Fournis les posologies SYNTHÉTISÉES pour le médicament français: ${medicationName}
 
 INSTRUCTIONS :
-1. Recherche la section 4.2 du RCP officiel
-2. Fournis les posologies par tranche d'âge et de poids
-3. Inclus les doses maximales et les précautions
-4. Indique les adaptations posologiques si nécessaire` }
+1. Fournis les posologies par tranche d'âge et de poids
+2. Inclus les doses maximales et les précautions
+3. REFORMULE les informations de manière concise
+4. Phrases courtes et actionnables pour le comptoir` }
         ],
         tools: [{
           type: "function",
           function: {
             name: "extract_dosages",
-            description: "Extraire les posologies officielles d'un médicament français",
+            description: "Synthétiser les posologies d'un médicament français",
             parameters: {
               type: "object",
               properties: {
@@ -113,7 +126,7 @@ INSTRUCTIONS :
                       },
                       notes: { 
                         type: "string",
-                        description: "Notes importantes (espacement minimum entre prises, précautions, source RCP)"
+                        description: "Notes pratiques SYNTHÉTISÉES (espacement minimum, précautions)"
                       }
                     },
                     required: ["age", "poids", "voie", "dosePrise", "frequence", "doseMaxPrise", "doseMax24h", "notes"]
