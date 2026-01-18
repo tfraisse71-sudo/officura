@@ -6,6 +6,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const EDITORIAL_RULES = `
+## RÈGLES ÉDITORIALES OBLIGATOIRES (Medisafe)
+
+### INTERDICTION FORMELLE DU COPIÉ-COLLÉ
+- ❌ Ne JAMAIS copier mot pour mot des contenus de sites tiers
+- ❌ Ne JAMAIS reprendre la structure exacte ou formulations de sites institutionnels
+- ✅ Tous les contenus doivent être REFORMULÉS et ADAPTÉS à un usage officinal
+
+### MÉTHODE DE RÉDACTION
+- Synthétiser l'information essentielle
+- Langage clair, professionnel et concis
+- L'objectif est une AIDE À LA DÉCISION
+
+### GESTION DES SOURCES
+🔹 Sources citables : ANSM, HAS
+🔹 Présenter comme : "Synthèse fondée sur les référentiels cliniques reconnus"
+
+### POSITIONNEMENT
+- Contenu présenté comme une synthèse indépendante
+- L'IA est un outil de structuration et de synthèse
+`;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -27,59 +49,40 @@ serve(async (req) => {
 
 const systemPrompt = `Tu es un expert pharmacien français spécialisé dans les équivalences médicamenteuses.
 
-## RÈGLES DE VÉRIFICATION OBLIGATOIRES - TRÈS IMPORTANT
+${EDITORIAL_RULES}
 
-### SOURCES OFFICIELLES EXCLUSIVES
-Tu dois OBLIGATOIREMENT vérifier CHAQUE information sur ces sources AVANT de la communiquer :
-1. **Base de données publique des médicaments** : base-donnees-publique.medicaments.gouv.fr
-   - C'est la SEULE source de référence pour vérifier l'existence d'un médicament et ses dosages
-2. **Répertoire des génériques ANSM** : ansm.sante.fr/documents/reference/repertoire-des-generiques
-3. **RCP officiels** : accessibles via la base de données publique
-
-### RÈGLES ABSOLUES DE PRÉCISION
+## RÈGLES DE PRÉCISION ABSOLUES
 1. **AUCUNE INVENTION** : Ne JAMAIS inventer un médicament ou un dosage
 2. **VÉRIFICATION SYSTÉMATIQUE** : Si tu n'es pas 100% CERTAIN qu'un produit existe avec ce dosage exact en France, NE LE MENTIONNE PAS
 3. **QUALITÉ > QUANTITÉ** : Mieux vaut 2 équivalents vérifiés que 10 douteux
 4. **DOSAGES EXACTS** : Ne jamais approximer les dosages
 
-### ERREURS CONNUES À ÉVITER ABSOLUMENT
+### ERREURS CONNUES À ÉVITER
 - ❌ KARDEGIC existe UNIQUEMENT en 75mg et 160mg (JAMAIS 100mg, 300mg, 500mg)
 - ❌ ASPIRINE PROTECT existe en 100mg et 300mg
-- ❌ Ne confonds pas acide acétylsalicylique (aspirine) et paracétamol
 - ❌ Vérifie TOUJOURS la molécule active réelle d'un médicament
-
-### VÉRIFICATION DES MOLÉCULES
-AVANT d'affirmer qu'un médicament contient une molécule, VÉRIFIE sur le RCP officiel.
-Exemple d'erreur à éviter : ODDIBIL contient du BOLDO, pas du fumaria (fumeterre).
 
 ## CATÉGORIES D'ÉQUIVALENCES
 
 ### 1. ÉQUIVALENCES STRICTES (même molécule + même dosage)
 - Molécule active (DCI) IDENTIQUE
 - Dosage IDENTIQUE au mg près
-- La forme galénique peut varier (comprimé, sachet, etc.)
 
 ### 2. GÉNÉRIQUES
 - Liste UN SEUL générique représentatif
 - Mentionne "Disponible auprès de multiples laboratoires" si c'est le cas
 
 ### 3. ÉQUIVALENTS PAR INDICATION
-Pour les alternatives de parapharmacie avec MÊME INDICATION THÉRAPEUTIQUE :
-- Autres médicaments avec molécule différente mais même indication
+Pour les alternatives avec MÊME INDICATION THÉRAPEUTIQUE :
 - Dispositifs médicaux
 - Compléments alimentaires
-- Produits homéopathiques
-
-IMPORTANT : Ces produits doivent avoir la même indication thérapeutique PRINCIPALE.
-
-## FORMAT DE RÉPONSE
-Utilise la fonction display_equivalences avec des données VÉRIFIÉES UNIQUEMENT.`;
+- Produits homéopathiques`;
 
     const toolFunction = {
       type: "function",
       function: {
         name: "display_equivalences",
-        description: "Affiche les équivalences strictes d'un médicament après vérification sur les sources officielles",
+        description: "Afficher les équivalences synthétisées d'un médicament",
         parameters: {
           type: "object",
           properties: {
@@ -87,7 +90,7 @@ Utilise la fonction display_equivalences avec des données VÉRIFIÉES UNIQUEMEN
               type: "object",
               properties: {
                 originalName: { type: "string", description: "Nom du médicament original" },
-                dci: { type: "string", description: "Dénomination Commune Internationale (molécule active) VÉRIFIÉE sur le RCP" },
+                dci: { type: "string", description: "Dénomination Commune Internationale (molécule active)" },
                 dosage: { type: "string", description: "Dosage EXACT de la molécule active" },
                 form: { type: "string", description: "Forme galénique" },
               },
@@ -98,12 +101,12 @@ Utilise la fonction display_equivalences avec des données VÉRIFIÉES UNIQUEMEN
               items: {
                 type: "object",
                 properties: {
-                  name: { type: "string", description: "Nom générique représentatif (un seul exemple suffit)" },
+                  name: { type: "string", description: "Nom générique représentatif (un seul exemple)" },
                   note: { type: "string", description: "Note comme 'Disponible auprès de nombreux laboratoires'" }
                 },
                 required: ["name"]
               },
-              description: "UN SEUL générique représentatif (pas toute la liste des laboratoires)"
+              description: "UN SEUL générique représentatif"
             },
             brandEquivalents: {
               type: "array",
@@ -111,13 +114,13 @@ Utilise la fonction display_equivalences avec des données VÉRIFIÉES UNIQUEMEN
                 type: "object",
                 properties: {
                   name: { type: "string", description: "Nom de la spécialité avec dosage VÉRIFIÉ" },
-                  form: { type: "string", description: "Forme galénique (comprimé, sachet, etc.)" },
+                  form: { type: "string", description: "Forme galénique" },
                   laboratory: { type: "string", description: "Laboratoire fabricant" },
-                  note: { type: "string", description: "Notes éventuelles (gastro-résistant, etc.)" }
+                  note: { type: "string", description: "Notes éventuelles" }
                 },
                 required: ["name", "form"]
               },
-              description: "Spécialités de marque avec MÊME molécule et MÊME dosage (vérifiées)"
+              description: "Spécialités de marque avec MÊME molécule et MÊME dosage"
             },
             indicationEquivalents: {
               type: "array",
@@ -127,12 +130,12 @@ Utilise la fonction display_equivalences avec des données VÉRIFIÉES UNIQUEMEN
                   name: { type: "string", description: "Nom du produit" },
                   productType: { type: "string", enum: ["Médicament", "Dispositif médical", "Complément alimentaire", "Homéopathie"], description: "Type de produit" },
                   indication: { type: "string", description: "Indication thérapeutique commune" },
-                  activePrinciple: { type: "string", description: "Principe actif ou composant principal VÉRIFIÉ" },
+                  activePrinciple: { type: "string", description: "Principe actif ou composant principal" },
                   note: { type: "string", description: "Pourquoi c'est une alternative valable" }
                 },
                 required: ["name", "productType", "indication"]
               },
-              description: "Produits ayant la même indication thérapeutique mais molécule différente"
+              description: "Produits ayant la même indication thérapeutique"
             },
             excipientWarnings: {
               type: "array",
@@ -142,15 +145,15 @@ Utilise la fonction display_equivalences avec des données VÉRIFIÉES UNIQUEMEN
             summary: {
               type: "array",
               items: { type: "string" },
-              description: "Points clés vérifiés sur les équivalences"
+              description: "Points clés SYNTHÉTISÉS sur les équivalences"
             },
             substitutionAdvice: {
               type: "string",
-              description: "Conseil de substitution pour le pharmacien"
+              description: "Conseil de substitution REFORMULÉ pour le pharmacien"
             },
             verificationNote: {
               type: "string",
-              description: "Note sur la vérification effectuée (ex: 'Données vérifiées sur base-donnees-publique.medicaments.gouv.fr')"
+              description: "Note : 'Synthèse fondée sur les référentiels cliniques reconnus'"
             }
           },
           required: ["medicationAnalysis", "generics", "brandEquivalents", "indicationEquivalents", "excipientWarnings", "summary", "substitutionAdvice", "verificationNote"]
@@ -158,7 +161,6 @@ Utilise la fonction display_equivalences avec des données VÉRIFIÉES UNIQUEMEN
       }
     };
 
-    // Utiliser le modèle flash pour des réponses rapides
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -169,13 +171,14 @@ Utilise la fonction display_equivalences avec des données VÉRIFIÉES UNIQUEMEN
         model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Recherche les équivalences pour le médicament : "${medicationName}"
+          { role: 'user', content: `Recherche les équivalences SYNTHÉTISÉES pour le médicament : "${medicationName}"
           
-INSTRUCTIONS IMPORTANTES :
-1. Vérifie d'abord que ce médicament existe en France
-2. Identifie sa molécule active EXACTE et son dosage EXACT via le RCP officiel
-3. Ne liste que des équivalents dont tu es CERTAIN de l'existence et des dosages
-4. Pour les équivalents par indication, propose des alternatives de parapharmacie pertinentes` }
+INSTRUCTIONS :
+1. Vérifie que ce médicament existe en France
+2. Identifie sa molécule active EXACTE et son dosage EXACT
+3. Ne liste que des équivalents dont tu es CERTAIN de l'existence
+4. REFORMULE toutes les informations avec tes propres mots
+5. Termine par "Synthèse fondée sur les référentiels cliniques reconnus"` }
         ],
         tools: [toolFunction],
         tool_choice: { type: "function", function: { name: "display_equivalences" } }

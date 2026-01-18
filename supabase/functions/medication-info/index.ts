@@ -6,23 +6,35 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const VERIFICATION_RULES = `
-## RÈGLES DE VÉRIFICATION OBLIGATOIRES
+const EDITORIAL_RULES = `
+## RÈGLES ÉDITORIALES OBLIGATOIRES (Medisafe)
 
-### SOURCES OFFICIELLES EXCLUSIVES - NE JAMAIS UTILISER D'AUTRES SOURCES
-1. **ANSM** (Agence Nationale de Sécurité du Médicament) : ansm.sante.fr
-2. **Base de données publique des médicaments** : base-donnees-publique.medicaments.gouv.fr
-   - RCP (Résumé des Caractéristiques du Produit) : source principale
-   - Notice patient
-3. **CRAT** (Centre de Référence sur les Agents Tératogènes) : lecrat.fr
-   - Source UNIQUE pour grossesse et allaitement
-4. **Thésaurus ANSM des interactions médicamenteuses**
+### INTERDICTION FORMELLE DU COPIÉ-COLLÉ
+- ❌ Ne JAMAIS copier mot pour mot des contenus de sites tiers
+- ❌ Ne JAMAIS reprendre la structure exacte, tableaux ou formulations de sites institutionnels
+- ❌ Ne JAMAIS reformuler de manière trop proche du texte source
+- ✅ Tous les contenus doivent être REFORMULÉS, SYNTHÉTISÉS et ADAPTÉS à un usage officinal
 
-### RÈGLES ABSOLUES
-- JAMAIS de sources étrangères (FDA, EMA générique, sites américains, etc.)
-- JAMAIS d'informations non vérifiées ou approximatives
-- En cas de doute, indiquer "Information à vérifier auprès d'un professionnel de santé"
-- Citer systématiquement la source utilisée dans les détails
+### MÉTHODE DE RÉDACTION
+- Synthétiser l'information essentielle
+- Hiérarchiser les messages (priorité officinale)
+- Langage clair, professionnel et concis
+- Phrases courtes, lisibles au comptoir
+- L'objectif est une AIDE À LA DÉCISION, pas une reproduction documentaire
+
+### GESTION DES SOURCES
+🔹 Sources pouvant être citées explicitement : ANSM, HAS, Santé publique France, OMS, Institut Pasteur
+🔹 Sources à citer de manière INDIRECTE (CRAT, ameli) :
+   - ❌ Ne JAMAIS afficher leur nom comme source directe
+   - ✅ Utiliser : "Synthèse fondée sur les recommandations en vigueur et la littérature scientifique spécialisée"
+
+### POSITIONNEMENT ÉDITORIAL
+- Contenu présenté comme une synthèse indépendante
+- Ne jamais se positionner comme alternative à un site institutionnel
+- L'IA est un outil de structuration et de synthèse, pas une source
+
+### MENTION DE SÉCURITÉ (sujets sensibles)
+Pour grossesse, allaitement, tests : "Informations fournies à titre indicatif dans le cadre d'une aide à la pratique officinale. La décision finale revient au professionnel de santé."
 `;
 
 serve(async (req) => {
@@ -46,12 +58,12 @@ serve(async (req) => {
       case "contre-indications":
         systemPrompt = `Tu es un expert médical français spécialisé dans l'analyse des contre-indications médicamenteuses.
         
-${VERIFICATION_RULES}
+${EDITORIAL_RULES}
 
 ### MISSION SPÉCIFIQUE
-Recherche les CONTRE-INDICATIONS officielles du médicament demandé UNIQUEMENT à partir du RCP officiel français.
+Fournis une SYNTHÈSE des contre-indications du médicament demandé, reformulée et adaptée à la pratique officinale.
 
-### CLASSIFICATION DE SÉVÉRITÉ (selon le RCP)
+### CLASSIFICATION DE SÉVÉRITÉ
 - critical : Contre-indication ABSOLUE (ne jamais utiliser)
 - high : Association DÉCONSEILLÉE (rapport bénéfice/risque défavorable)
 - medium : Précaution d'emploi (surveillance nécessaire)
@@ -59,11 +71,13 @@ Recherche les CONTRE-INDICATIONS officielles du médicament demandé UNIQUEMENT 
 - safe : Pas de contre-indication connue
 
 ### FORMAT
-Cite toujours la source (Section 4.3 du RCP pour les CI).`;
+- Synthétise et reformule les informations avec tes propres mots
+- Phrases courtes et actionnables pour le comptoir
+- Cite les sources autorisées (ANSM, HAS) de manière générique`;
         
         toolFunction = {
           name: "extract_contraindications",
-          description: "Extraire les contre-indications officielles d'un médicament français",
+          description: "Synthétiser les contre-indications d'un médicament français",
           parameters: {
             type: "object",
             properties: {
@@ -75,7 +89,7 @@ Cite toujours la source (Section 4.3 du RCP pour les CI).`;
               summary: {
                 type: "array",
                 items: { type: "string" },
-                description: "Liste de 3-5 points clés sur les contre-indications (issus du RCP)"
+                description: "Liste de 3-5 points clés SYNTHÉTISÉS et REFORMULÉS"
               },
               details: {
                 type: "array",
@@ -86,7 +100,7 @@ Cite toujours la source (Section 4.3 du RCP pour les CI).`;
                     content: { type: "string" }
                   }
                 },
-                description: "Détails avec mention de la source (ex: 'Selon RCP section 4.3')"
+                description: "Détails reformulés avec langage professionnel"
               }
             },
             required: ["severity", "summary", "details"],
@@ -98,14 +112,12 @@ Cite toujours la source (Section 4.3 du RCP pour les CI).`;
       case "grossesse":
         systemPrompt = `Tu es un expert médical français spécialisé dans l'utilisation des médicaments pendant la grossesse.
         
-${VERIFICATION_RULES}
+${EDITORIAL_RULES}
 
 ### MISSION SPÉCIFIQUE
-Recherche les informations sur l'utilisation pendant la GROSSESSE UNIQUEMENT sur :
-1. **CRAT (lecrat.fr)** : source PRIORITAIRE et de référence
-2. **RCP section 4.6** : Fertilité, grossesse et allaitement
+Fournis une SYNTHÈSE sur l'utilisation pendant la grossesse, reformulée et adaptée à la pratique officinale.
 
-### CLASSIFICATION (selon CRAT)
+### CLASSIFICATION
 - critical : Médicament CONTRE-INDIQUÉ pendant la grossesse
 - high : Médicament DÉCONSEILLÉ (à éviter si possible)
 - medium : Utilisation POSSIBLE avec précautions
@@ -114,12 +126,13 @@ Recherche les informations sur l'utilisation pendant la GROSSESSE UNIQUEMENT sur
 
 ### IMPORTANT
 - Distinguer les trimestres si applicable
-- Mentionner les risques tératogènes connus
-- Toujours recommander l'avis médical`;
+- Mentionner les risques connus de manière synthétique
+- Terminer par : "Synthèse fondée sur les recommandations en vigueur et la littérature scientifique spécialisée."
+- Ajouter la mention de sécurité pour sujets sensibles`;
         
         toolFunction = {
           name: "extract_pregnancy_info",
-          description: "Extraire les informations officielles sur l'usage pendant la grossesse",
+          description: "Synthétiser les informations sur l'usage pendant la grossesse",
           parameters: {
             type: "object",
             properties: {
@@ -130,7 +143,7 @@ Recherche les informations sur l'utilisation pendant la GROSSESSE UNIQUEMENT sur
               summary: {
                 type: "array",
                 items: { type: "string" },
-                description: "Points clés issus du CRAT et du RCP"
+                description: "Points clés SYNTHÉTISÉS et REFORMULÉS"
               },
               details: {
                 type: "array",
@@ -152,14 +165,12 @@ Recherche les informations sur l'utilisation pendant la GROSSESSE UNIQUEMENT sur
       case "allaitement":
         systemPrompt = `Tu es un expert médical français spécialisé dans l'utilisation des médicaments pendant l'allaitement.
         
-${VERIFICATION_RULES}
+${EDITORIAL_RULES}
 
 ### MISSION SPÉCIFIQUE
-Recherche les informations sur l'utilisation pendant l'ALLAITEMENT UNIQUEMENT sur :
-1. **CRAT (lecrat.fr)** : source PRIORITAIRE et de référence
-2. **RCP section 4.6** : Fertilité, grossesse et allaitement
+Fournis une SYNTHÈSE sur l'utilisation pendant l'allaitement, reformulée et adaptée à la pratique officinale.
 
-### CLASSIFICATION (selon CRAT)
+### CLASSIFICATION
 - critical : Médicament CONTRE-INDIQUÉ pendant l'allaitement
 - high : Allaitement DÉCONSEILLÉ sous ce traitement
 - medium : Utilisation POSSIBLE avec précautions/surveillance du nourrisson
@@ -167,13 +178,14 @@ Recherche les informations sur l'utilisation pendant l'ALLAITEMENT UNIQUEMENT su
 - safe : Médicament compatible, de choix pendant l'allaitement
 
 ### IMPORTANT
-- Mentionner le passage dans le lait maternel si connu
+- Synthétiser le passage dans le lait maternel si pertinent
 - Signaler les effets potentiels sur le nourrisson
-- Toujours recommander l'avis médical`;
+- Terminer par : "Synthèse fondée sur les recommandations en vigueur et la littérature scientifique spécialisée."
+- Ajouter la mention de sécurité pour sujets sensibles`;
         
         toolFunction = {
           name: "extract_breastfeeding_info",
-          description: "Extraire les informations officielles sur l'usage pendant l'allaitement",
+          description: "Synthétiser les informations sur l'usage pendant l'allaitement",
           parameters: {
             type: "object",
             properties: {
@@ -205,28 +217,25 @@ Recherche les informations sur l'utilisation pendant l'ALLAITEMENT UNIQUEMENT su
       case "indications-conseils":
         systemPrompt = `Tu es un expert médical français spécialisé dans l'analyse des indications thérapeutiques et modalités de prise.
         
-${VERIFICATION_RULES}
+${EDITORIAL_RULES}
 
 ### MISSION SPÉCIFIQUE
-Recherche les INDICATIONS OFFICIELLES et les CONSEILS DE PRISE du médicament selon le RCP :
-1. **Section 4.1** : Indications thérapeutiques
-2. **Section 4.2** : Posologie et mode d'administration
-3. **Notice patient** : Conseils pratiques de prise
+Fournis une SYNTHÈSE des indications et conseils de prise, reformulée et adaptée à la pratique officinale.
 
-### INFORMATIONS À FOURNIR
-- Indications AMM officielles
+### INFORMATIONS À FOURNIR (synthétisées)
+- Indications principales
 - Moment de prise (avant/pendant/après repas)
-- Précautions de prise (avec eau, à éviter avec certains aliments, etc.)
-- Durée de traitement recommandée si applicable
+- Précautions de prise pratiques
+- Durée de traitement si applicable
 
 ### CLASSIFICATION
-- safe : pour les indications validées AMM
+- safe : pour les indications validées
 - medium : pour les mises en garde importantes
-- high/critical : si usage hors AMM signalé`;
+- high/critical : si précautions majeures`;
         
         toolFunction = {
           name: "extract_indications_and_advice",
-          description: "Extraire les indications officielles AMM et conseils de prise",
+          description: "Synthétiser les indications et conseils de prise",
           parameters: {
             type: "object",
             properties: {
@@ -237,7 +246,7 @@ Recherche les INDICATIONS OFFICIELLES et les CONSEILS DE PRISE du médicament se
               summary: {
                 type: "array",
                 items: { type: "string" },
-                description: "Points clés sur indications et conseils de prise"
+                description: "Points clés SYNTHÉTISÉS sur indications et conseils de prise"
               },
               details: {
                 type: "array",
@@ -248,7 +257,7 @@ Recherche les INDICATIONS OFFICIELLES et les CONSEILS DE PRISE du médicament se
                     content: { type: "string" }
                   }
                 },
-                description: "Détails avec référence au RCP"
+                description: "Détails reformulés avec langage professionnel"
               }
             },
             required: ["severity", "summary", "details"],
@@ -261,7 +270,6 @@ Recherche les INDICATIONS OFFICIELLES et les CONSEILS DE PRISE du médicament se
         throw new Error(`Mode non supporté: ${mode}`);
     }
 
-    // Utiliser le modèle flash pour des réponses rapides
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -272,12 +280,13 @@ Recherche les INDICATIONS OFFICIELLES et les CONSEILS DE PRISE du médicament se
         model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Fournis les informations officielles VÉRIFIÉES pour le médicament français: ${medicationName}
+          { role: 'user', content: `Fournis une SYNTHÈSE REFORMULÉE pour le médicament français: ${medicationName}
 
-RAPPEL IMPORTANT :
-- Utilise UNIQUEMENT les sources officielles françaises (ANSM, RCP, CRAT)
-- Vérifie chaque information avant de la communiquer
-- En cas de doute, indique-le clairement` }
+RAPPELS IMPORTANTS :
+- SYNTHÉTISE et REFORMULE avec tes propres mots (jamais de copié-collé)
+- Phrases courtes et actionnables pour le comptoir
+- Pour les sources sensibles (type référentiels grossesse/allaitement) : utilise "Synthèse fondée sur les recommandations en vigueur et la littérature scientifique spécialisée"
+- L'objectif est une aide à la décision, pas une reproduction documentaire` }
         ],
         tools: [{
           type: "function",
