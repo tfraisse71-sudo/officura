@@ -1,39 +1,39 @@
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
-
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: "Missing GEMINI_API_KEY" });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
   try {
-    const { prompt } = req.body || {};
-    if (!prompt || typeof prompt !== "string") {
+    const { prompt } = req.body;
+
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ error: "Missing GEMINI_API_KEY" });
+    }
+
+    if (!prompt) {
       return res.status(400).json({ error: "Missing prompt" });
     }
 
-    const url =
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" +
-      encodeURIComponent(apiKey);
+    const response = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" +
+        process.env.GEMINI_API_KEY,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+        }),
+      }
+    );
 
-    const r = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.2, maxOutputTokens: 800 }
-      })
-    });
+    const data = await response.json();
 
-    const data = await r.json();
+    const text =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text || "Aucune réponse";
 
-    if (!r.ok) {
-      // <-- c’est ici que tu verras pourquoi (quota, API non activée, etc.)
-      return res.status(r.status).json({ error: "Gemini error", details: data });
-    }
-
-    const text = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join("") || "";
-    return res.status(200).json({ text });
-  } catch (e) {
-    return res.status(500).json({ error: "Server error", details: String(e) });
+    res.status(200).json({ text });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Gemini error", details: error.message });
   }
 }
-
