@@ -1,3 +1,13 @@
+import { useState, useMemo, useEffect, useRef } from "react";
+import { Search, AlertCircle, Info, Leaf, Pill } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useMedicationData } from "@/hooks/useMedicationData";
+import { MedicationResults } from "./MedicationResults";
+import { EquivalenceResults } from "./EquivalenceResults";
+import { supabase } from "@/integrations/supabase/client";
 async function askGemini(prompt: string): Promise<string> {
   const r = await fetch("/api/gemini", {
     method: "POST",
@@ -13,16 +23,6 @@ async function askGemini(prompt: string): Promise<string> {
   return data.text;
 }
 
-import { useState, useMemo, useEffect, useRef } from "react";
-import { Search, AlertCircle, Info, Leaf, Pill } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useMedicationData } from "@/hooks/useMedicationData";
-import { MedicationResults } from "./MedicationResults";
-import { EquivalenceResults } from "./EquivalenceResults";
-import { supabase } from "@/integrations/supabase/client";
 
 // Liste des plantes médicinales courantes pour l'autocomplétion
 const COMMON_PLANTS = [
