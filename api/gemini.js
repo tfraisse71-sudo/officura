@@ -1,20 +1,19 @@
-// api/gemini.ts
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: "Missing GEMINI_API_KEY on server" });
-
-  const { prompt } = req.body ?? {};
-  if (!prompt || typeof prompt !== "string") {
-    return res.status(400).json({ error: "Missing prompt (string)" });
+  if (!apiKey) {
+    return res.status(500).json({ error: "Missing GEMINI_API_KEY on server" });
   }
 
-  const model = "gemini-1.5-flash"; // ou gemini-1.5-pro selon ton besoin
+  const { prompt } = req.body ?? {};
+  if (typeof prompt !== "string" || !prompt.trim()) {
+    return res.status(400).json({ error: "Missing prompt" });
+  }
+
+  const model = "gemini-1.5-flash";
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
   try {
@@ -27,13 +26,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     const data = await r.json();
-    if (!r.ok) return res.status(r.status).json({ error: data?.error ?? data });
+    if (!r.ok) {
+      return res.status(r.status).json({ error: data?.error?.message ?? data?.error ?? data });
+    }
 
     const text =
-      data?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text).filter(Boolean).join("") ?? "";
+      data?.candidates?.[0]?.content?.parts?.map((p) => p?.text).filter(Boolean).join("") ?? "";
 
-    return res.status(200).json({ text, raw: data });
-  } catch (e: any) {
+    return res.status(200).json({ text });
+  } catch (e) {
     return res.status(500).json({ error: e?.message ?? "Server error" });
   }
 }
